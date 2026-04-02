@@ -3,7 +3,7 @@ import logging
 from typing import Optional, List
 from uuid import UUID
 
-from synchra_py import SynchraClient
+from synchra import SynchraClient
 from .formatter import Formatter
 
 class SynchraObserver:

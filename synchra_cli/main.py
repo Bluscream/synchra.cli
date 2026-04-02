@@ -4,7 +4,7 @@ import os
 import signal
 from uuid import UUID
 
-from synchra_py import SynchraClient
+from synchra import SynchraClient
 from .observer import SynchraObserver
 from .input_handler import AsyncInput
 from .formatter import Formatter
