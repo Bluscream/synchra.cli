@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "synchra.cli"
-version = "0.1.3"
+version = "0.1.4"
 description = "A powerful, interactive CLI for monitoring and sending messages via the Synchra API."
 readme = "README.md"
 license = {text = "MIT"}
