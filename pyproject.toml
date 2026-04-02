@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "synchra.cli"
+version = "0.1.0"
+description = "A powerful, interactive CLI for monitoring and sending messages via the Synchra API."
+readme = "README.md"
+license = {text = "MIT"}
+authors = [
+    {name = "Bluscream", email = "blu.pypi@minopia.de"},
+    {name = "Antigravity.AI", email = "antigravity@google.com" }
+]
+requires-python = ">=3.9"
+dependencies = [
+    "synchra.py>=0.1.0"
+]
+
+[project.scripts]
+synchra = "synchra_cli.main:entry_point"
+
+[tool.setuptools.packages.find]
+include = ["synchra_cli*"]
+
+[tool.setuptools.package-data]
+"*" = ["*.md"]
