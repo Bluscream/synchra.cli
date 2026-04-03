@@ -3,7 +3,29 @@ import argparse
 import os
 import sys
 import signal
+import collections
+import collections.abc
 from uuid import UUID
+
+# Aggressive Python 3.14 compatibility shim for Pydantic V1 (internal shim)
+import sys
+import collections
+import collections.abc
+import types
+
+# Create a new collections module that includes ALL abc aliases
+new_collections = types.ModuleType("collections")
+# Copy original collections members
+for name in dir(collections):
+    setattr(new_collections, name, getattr(collections, name))
+# Inject abc aliases (Universal shim for Pydantic V1)
+for name in dir(collections.abc):
+    if not name.startswith("_"):
+        setattr(new_collections, name, getattr(collections.abc, name))
+
+# Swap the module in sys.modules before any other imports occur
+sys.modules["collections"] = new_collections
+import collections # Re-import to global scope
 
 from synchra import SynchraClient
 from synchra_cli.observer import SynchraObserver

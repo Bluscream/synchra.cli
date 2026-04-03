@@ -6,6 +6,7 @@ param(
     [switch]$bump,
     [switch]$publish,
     [switch]$compile,
+    [switch]$build,
     [switch]$pre
 )
 
@@ -42,7 +43,7 @@ function Compile-CLI {
     Push-Location $repoRoot # Dist/ must be in repo root
     try {
         & $pythonExe -m pip install --upgrade pyinstaller --user --quiet
-        & $pythonExe -m pip install -e $sdkPath # Important: ensure SDK is available for compilation
+        & $pythonExe -m pip install --no-deps "synchra.py==$targetVersion" # Skip dependency rebuilds on Python 3.14
         
         $binName = if ($arch -eq "x64") { "synchra_x64.exe" } else { "synchra_x86.exe" }
         $binDir = "dist/bin"
@@ -54,6 +55,16 @@ function Compile-CLI {
         if (Test-Path "dist/$binName") {
             Move-Item "dist/$binName" "$binDir/$binName" -Force
             Write-Host "Successfully built $binName" -ForegroundColor Green
+
+            # Smoke Test
+            Write-Host "Running smoke test for $binName..." -ForegroundColor Cyan
+            $output = & "$repoRoot/$binDir/$binName" --help 2>&1 | Out-String
+            if ($output -notmatch "Synchra CLI Observer") {
+                Write-Error "Smoke test failed for $binName!"
+                Write-Host "Output was: $output" -ForegroundColor Red
+                exit 1
+            }
+            Write-Host "Smoke test passed for $binName." -ForegroundColor Green
         }
     } finally { Pop-Location }
 }
@@ -92,7 +103,7 @@ if ($version) { $targetVersion = $version }
 
 if ($bump -or $version -or $doAll) { Update-Version $targetVersion }
 
-if ($compile -or $doAll) {
+if ($compile -or $build -or $doAll) {
     $interpreters = Get-PythonInterpreters
     if ($interpreters.x64) { Compile-CLI -arch "x64" -pythonExe $interpreters.x64 }
     if ($interpreters.x86) { Compile-CLI -arch "x86" -pythonExe $interpreters.x86 }
