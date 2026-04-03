@@ -43,7 +43,16 @@ function Compile-CLI {
     Push-Location $repoRoot # Dist/ must be in repo root
     try {
         & $pythonExe -m pip install --upgrade pyinstaller --user --quiet
-        & $pythonExe -m pip install --no-deps "synchra.py==$targetVersion" # Skip dependency rebuilds on Python 3.14
+        # Install SDK from local build artifacts first (avoids PyPI propagation delay)
+        $sdkWheel = Get-ChildItem -Path "$sdkPath/dist" -Filter "synchra_py-${targetVersion}*.whl" -ErrorAction SilentlyContinue | Select-Object -First 1
+        if ($sdkWheel) {
+            Write-Host "Installing SDK from local artifact: $($sdkWheel.Name)" -ForegroundColor Cyan
+            & $pythonExe -m pip install --no-deps --force-reinstall $sdkWheel.FullName --quiet
+        } else {
+            Write-Host "No local SDK wheel found, falling back to PyPI..." -ForegroundColor Yellow
+            
+            & $pythonExe -m pip install --no-deps "synchra.py==$targetVersion"
+        }
         
         $binName = if ($arch -eq "x64") { "synchra_x64.exe" } else { "synchra_x86.exe" }
         $binDir = "dist/bin"
