@@ -1,13 +1,14 @@
 import asyncio
 import argparse
 import os
+import sys
 import signal
 from uuid import UUID
 
 from synchra import SynchraClient
-from .observer import SynchraObserver
-from .input_handler import AsyncInput
-from .formatter import Formatter
+from synchra_cli.observer import SynchraObserver
+from synchra_cli.input_handler import AsyncInput
+from synchra_cli.formatter import Formatter
 
 async def main():
     parser = argparse.ArgumentParser(description="Synchra CLI Observer")

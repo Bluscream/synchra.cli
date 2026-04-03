@@ -4,7 +4,7 @@ from typing import Optional, List
 from uuid import UUID
 
 from synchra import SynchraClient
-from .formatter import Formatter
+from synchra_cli.formatter import Formatter
 
 class SynchraObserver:
     """The main logic for the Synchra CLI Observer."""
