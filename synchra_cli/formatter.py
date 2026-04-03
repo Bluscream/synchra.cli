@@ -47,6 +47,14 @@ class Formatter:
               f"{cls.BOLD}INFO{cls.RESET}    | {text}")
 
     @classmethod
+    def profile(cls, title: str, details: dict):
+        print(f"\n{cls.BOLD}{cls.CYAN}=== {title.upper()} ==={cls.RESET}")
+        for k, v in details.items():
+            key_str = f"{cls.YELLOW}{k.replace('_', ' ').title():<15}{cls.RESET}"
+            print(f"{key_str}: {v}")
+        print(f"{cls.CYAN}{'=' * (len(title) + 8)}{cls.RESET}\n")
+
+    @classmethod
     def error(cls, text: str):
         print(f"[{cls.RED}{cls.get_timestamp()}{cls.RESET}] "
               f"{cls.RED}{cls.BOLD}ERROR{cls.RESET}   | {text}")
