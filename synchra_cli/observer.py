@@ -63,10 +63,9 @@ class SynchraObserver:
             getattr(p.provider, 'value', str(p.provider)).upper() 
             for p in self.channel_providers
         ])
-        Formatter.profile("Target Monitoring", {
+        Formatter.profile("Target", {
             "channel_id": self.channel_id,
-            "monitored_apps": target_platforms,
-            "provider_count": len(self.channel_providers)
+            "platforms": target_platforms,
         })
 
         # 4. Setup WebSocket handlers
