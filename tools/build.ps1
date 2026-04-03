@@ -50,7 +50,7 @@ function Compile-CLI {
             & $pythonExe -m pip install --no-deps --force-reinstall $sdkWheel.FullName --quiet
         } else {
             Write-Host "No local SDK wheel found, falling back to PyPI..." -ForegroundColor Yellow
-            
+            Start-Sleep -Seconds 5
             & $pythonExe -m pip install --no-deps "synchra.py==$targetVersion"
         }
         
