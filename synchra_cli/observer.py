@@ -37,7 +37,7 @@ class SynchraObserver:
         except Exception as e:
             Formatter.error(f"Failed to fetch user profile: {e}")
 
-        # 2. Resolve Target Channel
+        # 2. Resolve Target ChannelRecord
         if channel_id:
             self.channel_id = channel_id
         elif provider and name:
@@ -56,7 +56,7 @@ class SynchraObserver:
         if not self.channel_id:
             raise Exception("No channel ID provided and could not resolve one from target username.")
 
-        # 3. Fetch Channel Details & Providers
+        # 3. Fetch ChannelRecord Details & Providers
         self.channel_providers = await self.client.channels.list_providers(self.channel_id)
         
         target_platforms = ", ".join([

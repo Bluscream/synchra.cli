@@ -34,7 +34,7 @@ from synchra_cli.formatter import Formatter
 
 async def main():
     parser = argparse.ArgumentParser(description="Synchra CLI Observer")
-    parser.add_argument("target", nargs="*", help="Channel ID, platform/name, or platform name (e.g. 'tiktok/user' or 'tiktok user')")
+    parser.add_argument("target", nargs="*", help="ChannelRecord ID, platform/name, or platform name (e.g. 'tiktok/user' or 'tiktok user')")
     parser.add_argument("--target", dest="opt_target", help="Legacy target flag (UUID or platform/name)")
     parser.add_argument("--token", help="Synchra API Access Token (env: SYNCHRA_TOKEN)")
     parser.add_argument("--timeout", type=int, help="Exit after X seconds (optional)")
