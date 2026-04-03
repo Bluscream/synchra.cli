@@ -1,15 +1,19 @@
-name: Publish to PyPI
+name: Publish to PyPI and Build Binaries
 
 on:
   release:
     types: [published]
+  push:
+    tags:
+      - 'v*'
 
 jobs:
   build-n-publish:
     name: Build and publish to PyPI
     runs-on: ubuntu-latest
+    if: github.event.name == 'release'
     permissions:
-      id-token: write  # Mandatory for Trusted Publishing
+      id-token: write
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python
@@ -22,3 +26,43 @@ jobs:
       run: python -m build --sdist --wheel --outdir dist/
     - name: Publish package
       uses: pypa/gh-action-pypi-publish@release/v1
+
+  build-binaries:
+    name: Build Multi-Platform Binaries
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            arch: x64
+            binary_name: synchra_amd64
+          - os: ubuntu-24.04-arm
+            arch: arm64
+            binary_name: synchra_arm64    
+          - os: windows-latest
+            arch: x64
+            binary_name: synchra_x64.exe
+          - os: windows-latest
+            arch: x86
+            binary_name: synchra_x86.exe
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.12"
+        architecture: ${{ matrix.arch }}
+    - name: Install Dependencies
+      run: |
+        python -m pip install --upgrade pip setuptools pyinstaller
+        python -m pip install -e .
+    - name: Build Binary
+      run: |
+        # Use simple pyinstaller command, as it's more cross-platform compatible
+        pyinstaller --onefile --name ${{ matrix.binary_name }} --clean synchra_cli/main.py
+    - name: Upload Binary to Release
+      uses: softprops/action-gh-release@v2
+      with:
+        files: dist/${{ matrix.binary_name }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
