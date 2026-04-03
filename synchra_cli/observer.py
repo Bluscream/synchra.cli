@@ -130,6 +130,7 @@ class SynchraObserver:
                 Formatter.info(f"Broadcasted message to {success} platforms.")
             if failed > 0:
                 for err in result.get("errors", []):
-                    Formatter.error(f"Failed to send to {err['platform'].upper()}: {err['error']}")
+                    p_name = getattr(err['platform'], 'value', str(err['platform']))
+                    Formatter.error(f"Failed to send to {p_name.upper()}: {err['error']}")
         except Exception as e:
             Formatter.error(f"Broadcast failed: {e}")
