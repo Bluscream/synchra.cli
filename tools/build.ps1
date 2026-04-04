@@ -117,6 +117,8 @@ if ($version) { $targetVersion = $version }
 if ($bump -or $version -or $doAll) { Update-Version $targetVersion }
 
 if ($compile -or $build -or $doAll) {
+    # Cleanup only at the start of a full build
+    Remove-Item -Path "dist", "build", "*.egg-info" -Recurse -Force -ErrorAction SilentlyContinue
     $interpreters = Get-PythonInterpreters
     if ($interpreters.x64) { Compile-CLI -arch "x64" -pythonExe $interpreters.x64 }
     if ($interpreters.x86) { Compile-CLI -arch "x86" -pythonExe $interpreters.x86 }
@@ -167,9 +169,9 @@ if ($publish -or $doAll) {
     $env:PYPI_TOKEN = [System.Environment]::GetEnvironmentVariable("PYPI_TOKEN", "User")
     Push-Location $repoRoot
     try {
-        Remove-Item -Path "dist" -Recurse -ErrorAction SilentlyContinue
-        python -m build
-        python -m twine upload -u "__token__" -p "$env:PYPI_TOKEN" dist/* --non-interactive --skip-existing
+        & python -m build
+        & python -m twine upload -u "__token__" -p "$env:PYPI_TOKEN" dist/* --non-interactive --skip-existing
+        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
     } finally { Pop-Location }
 }
 
