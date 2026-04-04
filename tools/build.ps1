@@ -10,6 +10,9 @@ param(
     [switch]$pre
 )
 
+# Reset exit code to avoid inherited failures
+$global:LASTEXITCODE = 0
+
 # Configuration
 $repoRoot = Split-Path -Parent $PSScriptRoot
 $sdkPath = Join-Path (Split-Path -Parent $repoRoot) "synchra.py"
@@ -44,7 +47,7 @@ function Compile-CLI {
     try {
         & $pythonExe -m pip install --upgrade pyinstaller --user --quiet
         # Install SDK from local build artifacts first (avoids PyPI propagation delay)
-        $sdkWheel = Get-ChildItem -Path "$sdkPath/dist" -Filter "synchra_py-${targetVersion}*.whl" -ErrorAction SilentlyContinue | Select-Object -First 1
+        $sdkWheel = Get-ChildItem -Path "$sdkPath/dist" -Filter "synchra_py-*.whl" -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 1
         if ($sdkWheel) {
             Write-Host "Installing SDK from local artifact: $($sdkWheel.Name)" -ForegroundColor Cyan
             & $pythonExe -m pip install --no-deps --force-reinstall $sdkWheel.FullName --quiet
@@ -105,7 +108,8 @@ function Update-Version {
     }
 }
 
-$doAll = -not ($commit -or $push -or $release -or $version -or $bump -or $publish -or $compile -or $pre)
+# Logic to determine if we should perform all steps
+$doAll = -not ($commit -or $push -or $release -or $bump -or $publish -or $compile -or $build)
 $currentVersion = Get-CurrentVersion
 $targetVersion = if ($bump -or $doAll) { Bump-Version $currentVersion } else { $currentVersion }
 if ($version) { $targetVersion = $version }
@@ -134,8 +138,12 @@ if ($commit -or $doAll) {
 if ($push -or $doAll) {
     Push-Location $repoRoot
     try {
-        git push origin main
-        if ($release -or $doAll) { git push origin "v${targetVersion}" -f }
+        & git push origin main
+        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+        if ($release -or $doAll) { 
+            & git push origin "v${targetVersion}" -f 
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+        }
     } finally { Pop-Location }
 }
 
@@ -143,10 +151,14 @@ if ($release -or $doAll) {
     Push-Location $repoRoot
     try {
         if (-not (gh release view "v${targetVersion}" 2>$null)) {
-            gh release create "v${targetVersion}" --title "v${targetVersion} - CLI" --notes "CLI Release v${targetVersion}"
+            & gh release create "v${targetVersion}" --title "v${targetVersion} - CLI" --notes "CLI Release v${targetVersion}"
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
         }
         $bins = Get-ChildItem -Path "dist/bin" -Filter "*.exe" -ErrorAction SilentlyContinue
-        if ($bins) { gh release upload "v${targetVersion}" $bins.FullName --clobber }
+        if ($bins) { 
+            & gh release upload "v${targetVersion}" $bins.FullName --clobber 
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+        }
     } finally { Pop-Location }
 }
 
@@ -162,3 +174,4 @@ if ($publish -or $doAll) {
 }
 
 Write-Host "CLI Build completed. Version: $targetVersion"
+exit 0
