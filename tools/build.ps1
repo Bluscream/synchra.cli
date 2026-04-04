@@ -30,7 +30,7 @@ function Get-PythonInterpreters {
     }
     
     if (-not $results.x64) {
-        $x64Paths = @("C:\Program Files\Python314\python.exe", "C:\Program Files\Python313\python.exe")
+        $x64Paths = @("C:\Program Files\Python313\python.exe", "C:\Program Files\Python314\python.exe")
         foreach ($p in $x64Paths) { if (Test-Path $p) { $results.x64 = $p; break } }
     }
     return $results

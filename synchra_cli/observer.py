@@ -31,16 +31,21 @@ class SynchraObserver:
             })
             
             if user_providers:
-                # Picker for default sender
+                # Picker for default sender (could be smarter, but we'll use first for now)
                 self.user_provider_id = user_providers[0].id
             else:
                 Formatter.error("No linked providers found for your account. Chat is disabled.")
         except Exception as e:
             Formatter.error(f"Failed to fetch user profile: {e}")
 
-        # 2. Resolve Target ChannelRecord
+        # 2. Resolve Target Channel
+        channel_data = None
         if channel_id:
-            self.channel_id = channel_id
+            try:
+                channel_data = await self.client.channels.get(channel_id)
+                self.channel_id = channel_id
+            except Exception as e:
+                Formatter.error(f"Failed to fetch channel {channel_id}: {e}")
         elif provider and name:
             Formatter.info(f"Resolving channel: {provider}/{name}...")
             channels = await self.client.channels.list(
@@ -48,6 +53,7 @@ class SynchraObserver:
                 provider_channel_name=name
             )
             if channels:
+                channel_data = channels[0]
                 self.channel_id = channels[0].id
             else:
                 raise Exception(f"No channel found for {provider}/{name}")
@@ -57,15 +63,16 @@ class SynchraObserver:
         if not self.channel_id:
             raise Exception("No channel ID provided and could not resolve one from target username.")
 
-        # 3. Fetch ChannelRecord Details & Providers
+        # 3. Fetch Channel Detail & Providers
         self.channel_providers = await self.client.channels.list_providers(self.channel_id)
         
-        target_platforms = ", ".join([
-            p.provider.value.upper() 
-            for p in self.channel_providers
-        ])
-        Formatter.profile("Target", {
-            "channel_id": str(self.channel_id),
+        # Consolidation for Profile View
+        display_name = channel_data.display_name if channel_data else "Unknown"
+        target_platforms = ", ".join([p.provider.value.upper() for p in self.channel_providers])
+        
+        Formatter.profile("Target Monitoring", {
+            "name": display_name,
+            "id": str(self.channel_id),
             "platforms": target_platforms,
         })
 
